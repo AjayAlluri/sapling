@@ -6,8 +6,8 @@ The tree view provides a visual snapshot of your emotional journaling progress. 
 
 - `components/tree/tree-panel.tsx` – UI wrapper that renders metadata cards, the canvas, and latest sentiment highlights.
 - `components/tree/tree-scene.tsx` – Sets up the Three.js canvas, lighting, and controls.
-- `components/tree/tree-model.tsx` – Generates the trunk, branches, and leaves based on the current tree state.
-- `lib/tree/state.ts` / `lib/tree/visuals.ts` – Translate Supabase rows into the simplified visual state and provide helper utilities for colors, health, and geometry sizing.
+- `components/tree/tree-model.tsx` – Generates the curved trunk, branch tubes, animated leaves, and emotion particles.
+- `lib/tree/state.ts` / `lib/tree/palette.ts` – Translate Supabase rows into `TreeVisualState` and derive color/animation palettes from dominant emotions and sentiment.
 
 ## Data flow
 
@@ -19,16 +19,18 @@ The tree view provides a visual snapshot of your emotional journaling progress. 
 
 | Metric | Visual Impact |
 | ------ | ------------- |
-| `branch_count` | Controls trunk height and number of branch meshes |
-| `leaf_count` | Adjusts leaf density and canopy volume |
-| `overall_health` | Alters branch posture/length and overall tone |
-| `last_emotion` | Picks the dominant color palette |
-| `streak_length` | Currently surfaced in UI metadata (future hook for animation) |
+| `branch_count` | Extends trunk height and spawns additional curved branches |
+| `leaf_count` | Adjusts instanced leaf density and canopy reach |
+| `overall_health` | Changes trunk thickness and branch posture |
+| `dominant_emotions` | Blends leaf colors, branch lean, particle type, and wind strength |
+| `sentimentScore` | Tunes leaf brightness, branch length, and animation amplitude |
+| `streak_length` | Displayed in the panel; reserved for future growth bonuses |
 
 ## Local tips
 
 - If your `tree_state` table is empty, the UI falls back to a default “seedling” state.
 - To experiment without journaling, manually update the row in Supabase and refresh the `/journal` page.
-- The visual generator keeps randomness constrained for repeatability; refresh the page to see small variations.
+- The visual generator uses the snapshot timestamp as a seed, so each save produces a stable tree but still allows gentle variation.
+- Emotion particles (fireflies, rain, sparks, etc.) are chosen from the dominant emotion palette—disable them by clearing the `tree_state` snapshot if needed.
 
-Next steps for later phases include morphing geometry with more emotion-specific behaviors and synchronizing animation to sentiment trends.
+Next steps for later phases include morphing geometry with more emotion-specific behaviors and synchronizing animation to long-term emotion streaks.

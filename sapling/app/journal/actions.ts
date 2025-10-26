@@ -213,7 +213,11 @@ async function updateTreeState({
       capturedAt: now.toISOString(),
       sentimentScore,
       primaryEmotion,
+      overallSentiment: analysis.overallSentiment,
+      dominantEmotions: analysis.dominantEmotions,
+      score: analysis.score,
       suggestions: analysis.suggestions,
+      seed: now.getTime(),
     },
   });
 
