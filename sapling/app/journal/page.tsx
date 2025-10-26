@@ -1,6 +1,9 @@
+import { redirect } from "next/navigation";
 import { EntryForm } from "@/components/journal/entry-form";
 import { EntryList, type JournalEntryItem } from "@/components/journal/entry-list";
+import { TreePanel } from "@/components/tree/tree-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { mapRowToVisualState } from "@/lib/tree/state";
 import type { Database } from "@/types/database";
 
 type SentimentRow = Database["public"]["Tables"]["sentiment_analysis"]["Row"];
@@ -12,10 +15,19 @@ type JournalQueryResult = JournalEntryRow & {
 
 export default async function JournalPage() {
   const supabase = createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from("journal_entries")
-    .select(
-      `
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    redirect("/auth/login");
+  }
+
+  const [{ data, error }, { data: treeStateRow, error: treeError }] = await Promise.all([
+    supabase
+      .from("journal_entries")
+      .select(
+        `
         id,
         title,
         content,
@@ -30,11 +42,20 @@ export default async function JournalPage() {
           dominant_emotions
         )
       `
-    )
-    .order("created_at", { ascending: false });
+      )
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("tree_state")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .maybeSingle(),
+  ]);
 
   if (error) {
     console.error("Failed to load journal entries", error);
+  }
+  if (treeError) {
+    console.error("Failed to load tree state", treeError);
   }
 
   const entries: JournalEntryItem[] =
@@ -49,11 +70,14 @@ export default async function JournalPage() {
       analysis: normalizeAnalysis(entry.sentiment_analysis),
     })) ?? [];
 
+  const treeState = mapRowToVisualState(treeStateRow);
+  const latestSummary = entries[0]?.analysis?.tone_summary ?? null;
+
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-16 sm:px-6">
       <header className="flex flex-col gap-4">
         <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-500">
-          Phase 5 · Journal
+          Phase 6 · Journal & Tree
         </span>
         <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">Daily reflections</h1>
         <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
@@ -62,8 +86,11 @@ export default async function JournalPage() {
         </p>
       </header>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr),minmax(0,1.2fr)]">
-        <EntryForm />
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr),minmax(0,1.1fr)]">
+        <div className="flex flex-col gap-8">
+          <EntryForm />
+          <TreePanel state={treeState} lastAnalysisSummary={latestSummary} />
+        </div>
         <EntryList entries={entries} />
       </div>
     </div>

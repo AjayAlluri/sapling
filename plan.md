@@ -115,7 +115,9 @@ Build an emotional journal app that visualizes emotions as a growing 3D tree usi
 - Basic tree rendering with camera controls
 - Connect to tree_state from database
 
-**Files created:** `components/3d/TreeScene.tsx`, `components/3d/Tree.tsx`, `lib/tree/generator.ts`
+**Files created:** `components/tree/tree-panel.tsx`, `components/tree/tree-scene.tsx`, `components/tree/tree-model.tsx`, `lib/tree/state.ts`, `lib/tree/visuals.ts`
+
+**Status:** Core scene scaffolded and hooked to Supabase `tree_state`; next steps include richer geometry, animation, and tighter emotion mappings.
 
 **Commit checkpoint:** "3D tree visualization foundation"
 

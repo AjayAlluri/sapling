@@ -42,4 +42,4 @@ To learn more about Next.js, take a look at the following resources:
 - [Supabase Documentation](https://supabase.com/docs) - auth, RLS, and Postgres features.
 - [React Three Fiber](https://docs.pmnd.rs/react-three-fiber) - build the 3D tree scene.
 - [Anthropic API Docs](https://docs.anthropic.com/) - integrate Claude models for sentiment.
-- Internal docs: `docs/prerequisites.md`, `docs/database.md`, `docs/claude.md`, `docs/journal.md`.
+- Internal docs: `docs/prerequisites.md`, `docs/database.md`, `docs/claude.md`, `docs/journal.md`, `docs/tree.md`.
