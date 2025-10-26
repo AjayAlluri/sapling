@@ -7,6 +7,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { analyzeJournalEntry, type AnalysisResult } from "@/lib/claude/analyze-entry";
 import { upsertSentimentAnalysis } from "@/lib/sentiment/upsert-analysis";
 import { clamp } from "@/lib/utils/math";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/types/database";
 
 const EntrySchema = z.object({
   title: z
@@ -69,7 +71,7 @@ export async function createJournalEntry(
 
     const { title, content, mood } = parsed.data;
 
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
@@ -150,7 +152,7 @@ async function updateTreeState({
   analysis,
   wordCount,
 }: {
-  supabase: ReturnType<typeof createSupabaseServerClient>;
+  supabase: SupabaseClient<Database>;
   userId: string;
   analysis: AnalysisResult;
   wordCount: number;

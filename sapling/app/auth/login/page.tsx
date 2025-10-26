@@ -9,7 +9,7 @@ type PageProps = {
 };
 
 export default async function LoginPage({ searchParams }: PageProps) {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();

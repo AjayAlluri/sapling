@@ -14,7 +14,7 @@ type JournalQueryResult = JournalEntryRow & {
 };
 
 export default async function JournalPage() {
-  const supabase = createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient();
   const {
     data: { session },
   } = await supabase.auth.getSession();
