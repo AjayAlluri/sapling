@@ -94,7 +94,6 @@ export default async function JournalPage() {
         <h1 className="text-3xl font-semibold">Daily reflections</h1>
         <p className="max-w-3xl text-sm text-white/90">
           Capture how you feel, let Sapling interpret the emotional currents, and watch your tree evolve.
-          Entries stay local to your Supabase project—perfect for personal experiments.
         </p>
       </header>
 
@@ -127,11 +126,27 @@ function normalizeAnalysis(
     return null;
   }
 
-  if (Array.isArray(relation)) {
-    return relation[0] ?? null;
+  const item = Array.isArray(relation) ? relation[0] : relation;
+
+  type Allowed = "very_negative" | "negative" | "neutral" | "positive" | "very_positive";
+  function isAllowed(value: string | null): value is Allowed {
+    return (
+      value === "very_negative" ||
+      value === "negative" ||
+      value === "neutral" ||
+      value === "positive" ||
+      value === "very_positive"
+    );
   }
 
-  return relation;
+  const overall = isAllowed(item.overall_sentiment) ? item.overall_sentiment : null;
+
+  return {
+    overall_sentiment: overall,
+    score: typeof item.score === "number" ? item.score : null,
+    tone_summary: item.tone_summary,
+    dominant_emotions: item.dominant_emotions as unknown,
+  };
 }
 
 function ErrorNotice({ message, hint }: { message: string; hint?: string }) {

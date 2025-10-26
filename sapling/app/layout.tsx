@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/config/site";
 import { SupabaseProvider } from "@/components/providers/supabase-provider";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SiteHeader } from "@/components/layout/site-header";
 import { SiteFooter } from "@/components/layout/site-footer";
+
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  display: "swap",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,7 +46,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#f6f1e4] text-white antialiased`}
+        className={`${instrumentSerif.variable} ${geistSans.variable} ${geistMono.variable} min-h-screen bg-gradient-to-b from-[#010308] via-[#040c1b] to-[#010206] text-slate-100 antialiased`}
       >
         <SupabaseProvider initialSession={session}>
           <div className="flex min-h-screen flex-col">

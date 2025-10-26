@@ -38,10 +38,9 @@ export function TreePanel({ state, lastAnalysisSummary }: Props) {
 
   return (
     <div
-      className="flex flex-col gap-4 rounded-3xl border bg-white/90 p-5 shadow-sm dark:bg-zinc-900/70"
+      className="flex flex-col gap-4 rounded-3xl border bg-zinc-900/80 p-5 shadow-sm"
       style={{
-        borderColor: `${state.palette.accentColor}30`,
-        background: `linear-gradient(180deg, ${state.palette.ambientLight} 0%, ${state.palette.leafSecondary} 70%, rgba(255,255,255,0.9) 100%)`,
+        borderColor: `${state.palette.accentColor}25`,
       }}
     >
       <header className="flex flex-col gap-1">

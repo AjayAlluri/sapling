@@ -2,8 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Instrument_Serif } from "next/font/google";
+import { TreeScene } from "@/components/tree/tree-scene";
+import { defaultTreeVisualState, type TreeVisualState } from "@/lib/tree/state";
+import { resolveEmotionPalette } from "@/lib/tree/palette";
 
 const instrumentSerif = Instrument_Serif({ subsets: ["latin"], weight: "400" });
+
+const leafIcons = ["🌱", "🌿", "🌳"] as const;
 
 const featureCards = [
   {
@@ -39,7 +44,7 @@ const highlights = [
 ];
 
 const pulseMetrics = [
-  { label: "Daily reflections", value: "1.8k+", description: "entries written with Claude insights" },
+  { label: "Daily reflections", value: "1.8k+", description: "entries written with Sapling" },
   { label: "Emotion palette", value: "12", description: "nuanced moods mapped to the 3D tree" },
   { label: "Average uplift", value: "+42%", description: "increase in positive sentiment after a week" },
 ];
@@ -51,11 +56,11 @@ const journey = [
   },
   {
     stage: "Understand",
-    detail: "Claude extracts emotions, confidence scores, and actionable next steps.",
+    detail: "Sapling extracts emotions, confidence scores, and actionable next steps.",
   },
   {
     stage: "Transform",
-    detail: "Each entry feeds the tree—branches bend, leaves glow, and particles dance to match your mood.",
+    detail: "Each entry feeds the tree branchs bend, leaves glow, and particles dance to match your mood.",
   },
 ];
 
@@ -80,6 +85,30 @@ export default function Home() {
     }),
     [cursor]
   );
+
+  const demoTreeState = useMemo<TreeVisualState>(() => {
+    const demoEmotions = [
+      { name: "joy", confidence: 0.7 },
+      { name: "gratitude", confidence: 0.3 },
+    ];
+    return {
+      ...defaultTreeVisualState,
+      branchCount: 7,
+      leafCount: 160,
+      overallHealth: 0.82,
+      lastEmotion: "joy",
+      streakLength: 5,
+      sentimentScore: 0.6,
+      overallSentiment: "positive",
+      dominantEmotions: demoEmotions,
+      palette: resolveEmotionPalette({
+        lastEmotion: "joy",
+        dominantEmotions: demoEmotions,
+        sentimentScore: 0.6,
+      }),
+      seed: 7,
+    };
+  }, []);
 
   return (
     <div className="relative overflow-hidden">
@@ -108,7 +137,7 @@ export default function Home() {
       >
         <div className="max-w-3xl space-y-6 text-slate-100">
           <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200/80">
-            Emotional journaling, reimagined
+            Emotional journaling, reimagined 🌱
           </span>
           <h1 className="text-5xl font-semibold leading-tight text-white sm:text-6xl">
             Visualize your thinking. Compose your mind.
@@ -117,7 +146,7 @@ export default function Home() {
             Sapling is a private studio for endless thoughts. Write freely, watch a living tree grow from your
             patterns, and keep every entry secured to your account.
           </p>
-          <div className="flex flex-col gap-3 text-sm sm:flex-row">
+          <div className="flex flex-col gap-3 text-sm sm:flex-row ${instrumentSerif.className}">
             <a
               href="/journal"
               className="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 font-medium text-slate-900 transition hover:bg-emerald-400"
@@ -135,6 +164,14 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Tree preview */}
+        <div className="rounded-3xl border border-emerald-400/30 bg-emerald-500/5 p-4 shadow-lg backdrop-blur">
+          <TreeScene state={demoTreeState} />
+          <p className="mt-3 text-center text-xs text-emerald-200/80">
+            A living snapshot that grows with your reflections
+          </p>
+        </div>
+
         {/* Quote */}
         <div className="relative">
           <blockquote
@@ -146,12 +183,15 @@ export default function Home() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
-          {featureCards.map((feature) => (
+          {featureCards.map((feature, idx) => (
             <div
               key={feature.title}
               className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 text-slate-100 shadow-lg backdrop-blur transition hover:-translate-y-1 hover:border-emerald-300/40"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 transition group-hover:via-emerald-500/10 group-hover:to-emerald-500/20" />
+              <span className="relative mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-400/10 ring-1 ring-emerald-400/30">
+                {leafIcons[idx % leafIcons.length]}
+              </span>
               <h3 className="relative text-sm font-semibold uppercase tracking-wide text-emerald-200">
                 {feature.title}
               </h3>
@@ -161,14 +201,6 @@ export default function Home() {
         </div>
 
         <section className="grid gap-12 lg:grid-cols-[1.05fr,0.95fr]">
-          <div className="flex flex-col gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 text-slate-100 shadow-lg backdrop-blur">
-            <h2 className="text-2xl font-semibold">Why Sapling works</h2>
-            <ul className="space-y-4 text-sm text-slate-200/90">
-              <li>✅ Built with privacy in mind—keep everything on your personal Supabase project.</li>
-              <li>✅ Intelligence that feels supportive, not clinical, thanks to carefully crafted Claude prompts.</li>
-              <li>✅ Visual accountability that motivates streaks and celebrates emotional progress.</li>
-            </ul>
-          </div>
           <div className="flex flex-col gap-6 rounded-3xl border border-emerald-400/30 bg-emerald-500/10 p-8 text-slate-100 backdrop-blur">
             {highlights.map((item) => (
               <div key={item.title} className="space-y-2">
@@ -206,7 +238,7 @@ export default function Home() {
               {journey.map((step, index) => (
                 <div key={step.stage} className="relative pl-6">
                   <span className="absolute left-0 top-1 h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(45,212,191,0.8)]" />
-                  <h4 className="text-lg font-semibold text-white">{index + 1}. {step.stage}</h4>
+                  <h4 className="text-lg font-semibold text-white">{index + 1}. {step.stage} <span className="ml-1 align-middle">🍃</span></h4>
                   <p className="text-sm text-slate-300/85">{step.detail}</p>
                 </div>
               ))}

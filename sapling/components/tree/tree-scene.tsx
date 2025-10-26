@@ -13,11 +13,11 @@ type Props = {
 
 export function TreeScene({ state }: Props) {
   const gradientStyle = useMemo(() => {
-    const top = new Color(state.palette.ambientLight).getStyle();
-    const mid = new Color(state.palette.leafSecondary).offsetHSL(0, -0.1, 0.1).getStyle();
+    const top = new Color(state.palette.ambientLight).offsetHSL(0, 0, -0.2).getStyle();
+    const mid = new Color(state.palette.leafSecondary).offsetHSL(0, -0.15, -0.2).getStyle();
     return {
-      background: `linear-gradient(180deg, ${top} 0%, ${mid} 55%, #ffffff 100%)`,
-      borderColor: `${state.palette.accentColor}35`,
+      background: `linear-gradient(180deg, ${top} 0%, ${mid} 55%, #0b1224 100%)`,
+      borderColor: `${state.palette.accentColor}30`,
     };
   }, [state.palette]);
 

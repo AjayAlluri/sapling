@@ -1,6 +1,6 @@
 "use client";
 
-import { startTransition, useEffect, useMemo, useState } from "react";
+import { startTransition, useEffect, useMemo, useRef, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import clsx from "clsx";
 import { createJournalEntry } from "@/app/journal/actions";
@@ -91,25 +91,116 @@ export function EntryForm() {
           <label htmlFor="mood" className="text-sm font-medium text-white/90">
             Mood tag
           </label>
-          <select
-            id="mood"
-            name="mood"
-            value={mood}
-            onChange={(event) => setMood(event.target.value)}
-            className="rounded-lg border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none ring-white/60 transition focus:ring"
-          >
-            {moodOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <MoodSelect value={mood} onChange={setMood} />
+          <input type="hidden" name="mood" id="mood" value={mood} />
         </div>
 
         <SubmitButton />
 
         <StatusMessage status={state.status} message={state.status === "idle" ? undefined : state.message} />
       </form>
+    </div>
+  );
+}
+
+function MoodSelect({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as Node;
+      if (containerRef.current && !containerRef.current.contains(target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  function handleKeyDown(event: React.KeyboardEvent) {
+    if (!open) return;
+    if (event.key === "Escape") {
+      setOpen(false);
+      buttonRef.current?.focus();
+    }
+  }
+
+  const selectedLabel = moodOptions.find((m) => m.value === value)?.label ?? "No mood tag";
+
+  return (
+    <div ref={containerRef} className="relative" onKeyDown={handleKeyDown}>
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={clsx(
+          "w-full h-11 rounded-full border bg-white/10 px-4 pr-10 text-left text-sm backdrop-blur transition",
+          "border-white/40 text-white hover:border-emerald-300/40 focus:outline-none focus:ring-2 focus:ring-emerald-400/60 focus:border-emerald-300/50",
+          value === "" && "text-white/70"
+        )}
+      >
+        {selectedLabel}
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white/70">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+      </button>
+
+      {open ? (
+        <ul
+          ref={listRef}
+          role="listbox"
+          className="absolute z-50 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-white/20 bg-zinc-900/95 p-1 text-sm text-white shadow-xl backdrop-blur"
+        >
+          {moodOptions.map((option) => {
+            const selected = option.value === value;
+            return (
+              <li
+                key={option.value}
+                role="option"
+                aria-selected={selected}
+                tabIndex={0}
+                onClick={() => {
+                  onChange(option.value);
+                  setOpen(false);
+                  buttonRef.current?.focus();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onChange(option.value);
+                    setOpen(false);
+                    buttonRef.current?.focus();
+                  }
+                }}
+                className={clsx(
+                  "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 outline-none",
+                  selected
+                    ? "bg-emerald-500/20 text-emerald-200"
+                    : "hover:bg-white/10 focus:bg-white/10"
+                )}
+              >
+                <span>{option.label}</span>
+                {selected ? (
+                  <span className="text-emerald-300">✓</span>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }
