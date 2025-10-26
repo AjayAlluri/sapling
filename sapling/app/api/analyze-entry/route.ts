@@ -13,10 +13,10 @@ export async function POST(req: Request) {
   try {
     const supabase = await createSupabaseServerClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Journal entry not found" }, { status: 404 });
     }
 
-    if (entry.user_id !== session.user.id) {
+    if (entry.user_id !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const { error: upsertError } = await upsertSentimentAnalysis({
       entryId,
-      model: "claude-3-5-sonnet-20241022",
+      model: "claude-3-7-sonnet-latest",
       analysis,
       rawResponse: analysis,
     });

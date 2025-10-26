@@ -1,7 +1,7 @@
 import type { Json } from "@/types/database";
 import { getAnthropicClient } from "@/lib/claude/client";
 
-const MODEL = "claude-3-5-sonnet-20241022";
+const MODEL = "claude-3-7-sonnet-latest";
 
 export type EmotionDescriptor = {
   name: string;
@@ -23,68 +23,10 @@ export async function analyzeJournalEntry(content: string): Promise<AnalysisResu
 
   const response = await client.messages.create({
     model: MODEL,
-    max_output_tokens: 1024,
+    max_tokens: 1024,
     temperature: 0.2,
     system:
-      "You are an assistant that evaluates personal journal entries and returns strictly formatted JSON summarizing the emotional landscape. Keep language supportive, empathetic, and concise.",
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "SaplingSentimentAnalysis",
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          required: ["overallSentiment", "summary", "dominantEmotions", "suggestions", "score"],
-          properties: {
-            overallSentiment: {
-              type: "string",
-              enum: ["very_negative", "negative", "neutral", "positive", "very_positive"],
-            },
-            summary: {
-              type: "string",
-              description: "One-paragraph summary written in a compassionate tone.",
-            },
-            dominantEmotions: {
-              type: "array",
-              minItems: 1,
-              maxItems: 4,
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["name", "confidence"],
-                properties: {
-                  name: { type: "string" },
-                  confidence: { type: "number", minimum: 0, maximum: 1 },
-                  colorHex: {
-                    type: "string",
-                    pattern: "^#(?:[0-9a-fA-F]{6})$",
-                    description: "Hex color associated with this emotion for the tree visualization.",
-                  },
-                  treeEffect: {
-                    type: "string",
-                    description: "Short description of how the emotion should affect the tree.",
-                  },
-                },
-              },
-            },
-            suggestions: {
-              type: "array",
-              minItems: 1,
-              maxItems: 3,
-              items: {
-                type: "string",
-              },
-            },
-            score: {
-              type: "number",
-              minimum: -1,
-              maximum: 1,
-              description: "Overall sentiment score in the range [-1, 1].",
-            },
-          },
-        },
-      },
-    },
+      "You are an assistant that evaluates personal journal entries and returns strictly formatted JSON summarizing the emotional landscape. Respond with a minified JSON object containing keys overallSentiment, summary, dominantEmotions, suggestions, and score. dominantEmotions must be an array (1-4 items) with objects {\"name\": string, \"confidence\": number between 0 and 1, \"colorHex\"?: hex string, \"treeEffect\"?: string}. summary should be a compassionate paragraph. suggestions should be 1-3 short strings. score must be a number between -1 and 1. Return ONLY JSON with no commentary.",
     messages: [
       {
         role: "user",
@@ -98,12 +40,21 @@ export async function analyzeJournalEntry(content: string): Promise<AnalysisResu
     ],
   });
 
-  const firstBlock = response.content[0];
-  if (!firstBlock || firstBlock.type !== "json_schema") {
+  const textBlock = response.content.find(
+    (item): item is { type: "text"; text: string } => item.type === "text"
+  );
+
+  if (!textBlock) {
     throw new Error("Unexpected response format from Claude");
   }
 
-  return firstBlock.parsed as AnalysisResult;
+  try {
+    const parsed = JSON.parse(textBlock.text) as AnalysisResult;
+    return parsed;
+  } catch (error) {
+    console.error("Failed to parse Claude response", { content: textBlock.text, error });
+    throw new Error("Claude returned an unexpected response. Please try again.");
+  }
 }
 
 export type SentimentUpsert = {

@@ -58,13 +58,16 @@ export async function createJournalEntry(
 
     const supabase = await createSupabaseServerClient();
     const {
-      data: { session },
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (userError || !user) {
+      console.error("Failed to fetch authenticated user", userError);
       return {
         status: "error",
-        message: "You need to be signed in to save entries.",
+        message:
+          "You need to be signed in to save entries. Please refresh the page and log in again.",
       };
     }
 
@@ -72,7 +75,7 @@ export async function createJournalEntry(
     const { data: entry, error: insertError } = await supabase
       .from("journal_entries")
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         title: title ?? null,
         content,
         mood_tag: mood ?? null,
@@ -97,7 +100,7 @@ export async function createJournalEntry(
       analysis = await analyzeJournalEntry(content);
       const { error: upsertError } = await upsertSentimentAnalysis({
         entryId: entry.id,
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-3-7-sonnet-latest",
         analysis,
         rawResponse: analysis,
       });
@@ -116,7 +119,7 @@ export async function createJournalEntry(
     if (analysis) {
       const treeStateWarning = await updateTreeState({
         supabase,
-        userId: session.user.id,
+        userId: user.id,
         analysis,
         wordCount,
       });
