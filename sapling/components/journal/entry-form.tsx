@@ -3,10 +3,8 @@
 import { startTransition, useEffect, useMemo, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import clsx from "clsx";
-import {
-  createJournalEntry,
-  initialCreateJournalEntryState,
-} from "@/app/journal/actions";
+import { createJournalEntry } from "@/app/journal/actions";
+import { createJournalEntryInitialState } from "@/app/journal/state";
 
 const moodOptions = [
   { value: "", label: "No mood tag" },
@@ -22,7 +20,7 @@ const moodOptions = [
 ];
 
 export function EntryForm() {
-  const [state, formAction] = useFormState(createJournalEntry, initialCreateJournalEntryState);
+  const [state, formAction] = useFormState(createJournalEntry, createJournalEntryInitialState);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [mood, setMood] = useState("");

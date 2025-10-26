@@ -10,6 +10,7 @@ import { clamp } from "@/lib/utils/math";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { describePostgrestError } from "@/lib/supabase/errors";
+import type { CreateJournalEntryState } from "@/app/journal/state";
 
 const EntrySchema = z.object({
   title: z
@@ -28,23 +29,6 @@ const EntrySchema = z.object({
     .optional()
     .transform((value) => (value?.trim() ? value.trim() : undefined)),
 });
-
-export type CreateJournalEntryState =
-  | {
-      status: "success";
-      message: string;
-    }
-  | {
-      status: "error";
-      message: string;
-    }
-  | {
-      status: "idle";
-    };
-
-export const initialCreateJournalEntryState: CreateJournalEntryState = {
-  status: "idle",
-};
 
 function calculateWordCount(content: string) {
   const words = content.trim().split(/\s+/);
