@@ -35,14 +35,14 @@ export default function Home() {
   return (
     <div className="relative overflow-hidden">
       <section className="mx-auto flex w-full max-w-6xl flex-col gap-16 px-4 py-20 sm:px-6 lg:gap-20 lg:py-24">
-        <div className="max-w-3xl space-y-6">
+        <div className="max-w-3xl space-y-6 text-white">
           <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-900/30 dark:text-emerald-200">
             Emotional journaling, reimagined
           </span>
           <h1 className="text-4xl font-semibold leading-tight sm:text-5xl">
             Grow a calmer mindset with every reflection.
           </h1>
-          <p className="text-lg text-zinc-600 dark:text-zinc-300">
+          <p className="text-lg text-white/90">
             Sapling turns daily thoughts into actionable insights. Write, analyze, and watch a 3D tree evolve
             as your emotional wellbeing improves.
           </p>
@@ -57,7 +57,7 @@ export default function Home() {
               href="https://github.com/ajayalluri/sapling"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-300 px-5 py-3 font-medium text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500 dark:hover:text-white"
+              className="inline-flex items-center justify-center rounded-full border border-white/60 px-5 py-3 font-medium text-white/90 transition hover:bg-white/10"
             >
               Explore the roadmap
             </a>
@@ -68,26 +68,26 @@ export default function Home() {
           {featureCards.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-zinc-200 bg-white/85 p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60"
+              className="rounded-2xl border border-white/20 bg-white/10 p-6 text-white shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-md"
             >
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-white/90">
                 {feature.title}
               </h3>
-              <p className="mt-3 text-sm text-zinc-600 dark:text-zinc-300">{feature.description}</p>
+              <p className="mt-3 text-sm text-white/80">{feature.description}</p>
             </div>
           ))}
         </div>
 
         <section className="grid gap-12 lg:grid-cols-[1.05fr,0.95fr]">
-          <div className="flex flex-col gap-6 rounded-3xl border border-zinc-200 bg-white/85 p-8 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60">
-            <h2 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Why Sapling works</h2>
-            <ul className="space-y-4 text-sm text-zinc-600 dark:text-zinc-300">
+          <div className="flex flex-col gap-6 rounded-3xl border border-white/20 bg-white/10 p-8 text-white shadow-sm backdrop-blur">
+            <h2 className="text-2xl font-semibold">Why Sapling works</h2>
+            <ul className="space-y-4 text-sm text-white/90">
               <li>✅ Built with privacy in mind—keep everything on your personal Supabase project.</li>
               <li>✅ Intelligence that feels supportive, not clinical, thanks to carefully crafted Claude prompts.</li>
               <li>✅ Visual accountability that motivates streaks and celebrates emotional progress.</li>
             </ul>
           </div>
-          <div className="flex flex-col gap-6 rounded-3xl border border-dashed border-emerald-300 bg-emerald-50/70 p-8 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-100">
+          <div className="flex flex-col gap-6 rounded-3xl border border-white/30 bg-emerald-700/30 p-8 text-white backdrop-blur">
             {highlights.map((item) => (
               <div key={item.title} className="space-y-2">
                 <h3 className="text-lg font-semibold">{item.title}</h3>

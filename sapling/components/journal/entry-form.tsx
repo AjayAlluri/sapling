@@ -43,16 +43,16 @@ export function EntryForm() {
   }, [state]);
 
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white/90 p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/70">
+    <div className="rounded-2xl border border-white/30 bg-white/10 p-6 text-white shadow-sm backdrop-blur">
       <header className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">New entry</h2>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <h2 className="text-lg font-semibold">New entry</h2>
+        <p className="text-sm text-white/80">
           Write how you feel today. Sapling will analyze it and grow your tree.
         </p>
       </header>
       <form action={formAction} className="mt-6 flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <label htmlFor="title" className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <label htmlFor="title" className="text-sm font-medium text-white/90">
             Title <span className="text-xs font-normal text-zinc-400">(optional)</span>
           </label>
           <input
@@ -60,14 +60,14 @@ export function EntryForm() {
             name="title"
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-800 outline-none ring-emerald-500 transition focus:ring dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+            className="rounded-lg border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none ring-white/60 transition placeholder:text-white/70 focus:ring"
             placeholder="Morning reflections"
             maxLength={120}
           />
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="content" className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <label htmlFor="content" className="text-sm font-medium text-white/90">
             Journal entry
           </label>
           <textarea
@@ -77,18 +77,18 @@ export function EntryForm() {
             onChange={(event) => setContent(event.target.value)}
             minLength={1}
             rows={8}
-            className="min-h-[180px] rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm text-zinc-800 outline-none ring-emerald-500 transition focus:ring dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            className="min-h-[180px] rounded-lg border border-white/40 bg-white/10 px-3 py-3 text-sm text-white outline-none ring-white/60 transition placeholder:text-white/70 focus:ring"
             placeholder="Let your thoughts flow…"
             required
           />
-          <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="flex items-center justify-between text-xs text-white/70">
             <span>{wordCount} words</span>
-            <span className="uppercase tracking-[0.2em] text-emerald-500">Analyzed automatically</span>
+            <span className="uppercase tracking-[0.2em] text-white/90">Analyzed automatically</span>
           </div>
         </div>
 
         <div className="flex flex-col gap-2">
-          <label htmlFor="mood" className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+          <label htmlFor="mood" className="text-sm font-medium text-white/90">
             Mood tag
           </label>
           <select
@@ -96,7 +96,7 @@ export function EntryForm() {
             name="mood"
             value={mood}
             onChange={(event) => setMood(event.target.value)}
-            className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-800 outline-none ring-emerald-500 transition focus:ring dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+            className="rounded-lg border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none ring-white/60 transition focus:ring"
           >
             {moodOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -121,7 +121,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-11 items-center justify-center rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-11 items-center justify-center rounded-full bg-emerald-700 px-5 text-sm font-semibold text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-60"
     >
       {pending ? "Saving entry…" : "Save entry"}
     </button>
@@ -144,8 +144,8 @@ function StatusMessage({
       className={clsx(
         "rounded-xl border px-3 py-3 text-sm",
         status === "success"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-900/20 dark:text-emerald-200"
-          : "border-red-200 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200"
+          ? "border-white/40 bg-emerald-700/30 text-white"
+          : "border-white/40 bg-red-700/30 text-white"
       )}
     >
       {message}

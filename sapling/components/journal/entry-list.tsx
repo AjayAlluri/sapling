@@ -59,7 +59,7 @@ export function EntryList({ entries }: { entries: JournalEntryItem[] }) {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-zinc-300 bg-white/50 p-8 text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+      <div className="rounded-2xl border border-dashed border-white/40 bg-white/10 p-8 text-sm text-white/80 backdrop-blur">
         No entries yet. Write your first reflection to start growing your tree.
       </div>
     );
@@ -67,17 +67,17 @@ export function EntryList({ entries }: { entries: JournalEntryItem[] }) {
 
   return (
     <section className="flex flex-col gap-5">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-3 text-white sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Recent entries</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <h2 className="text-lg font-semibold">Recent entries</h2>
+          <p className="text-sm text-white/80">
             Each entry is analyzed automatically—filter by sentiment to explore your patterns.
           </p>
         </div>
         <select
           value={sentimentFilter}
           onChange={(event) => setSentimentFilter(event.target.value as (typeof sentimentFilters)[number]["value"])}
-          className="h-10 rounded-full border border-zinc-300 bg-white px-4 text-sm text-zinc-700 outline-none ring-emerald-500 transition focus:ring dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-200"
+          className="h-10 rounded-full border border-white/50 bg-white/10 px-4 text-sm text-white outline-none ring-white/60 transition placeholder:text-white/70 focus:ring"
         >
           {sentimentFilters.map((option) => (
             <option key={option.value} value={option.value}>
@@ -98,40 +98,40 @@ export function EntryList({ entries }: { entries: JournalEntryItem[] }) {
           return (
             <article
               key={entry.id}
-              className="rounded-2xl border border-zinc-200 bg-white/90 p-6 shadow-sm transition hover:-translate-y-[2px] hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/70"
+              className="rounded-2xl border border-white/30 bg-white/10 p-6 text-white shadow-sm backdrop-blur transition hover:-translate-y-[2px] hover:shadow-md"
             >
               <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 <div>
-                  <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+                  <h3 className="text-base font-semibold">
                     {entry.title ?? "Untitled entry"}
                   </h3>
-                  <p className="text-xs uppercase tracking-[0.25em] text-zinc-400 dark:text-zinc-500">
+                  <p className="text-xs uppercase tracking-[0.25em] text-white/70">
                     {format(new Date(entry.createdAt), "MMM d, yyyy · h:mm a")}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+                <div className="flex items-center gap-3 text-xs text-white/80">
                   {entry.moodTag ? <Tag label={entry.moodTag} tone="emerald" /> : null}
                   {typeof entry.wordCount === "number" ? <span>{entry.wordCount} words</span> : null}
                 </div>
               </div>
 
-              <p className="mt-4 line-clamp-3 text-sm text-zinc-600 dark:text-zinc-300">
+              <p className="mt-4 line-clamp-3 text-sm text-white/90">
                 {entry.content}
               </p>
 
               <div className="mt-4 flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full bg-zinc-100 px-3 py-1 font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                <span className="rounded-full bg-white/20 px-3 py-1 font-medium text-white">
                   {friendlySentiment}
                 </span>
                 {typeof score === "number" ? (
-                  <span className="rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-200">
+                  <span className="rounded-full bg-emerald-500/30 px-3 py-1 font-medium text-white">
                     Score {score.toFixed(2)}
                   </span>
                 ) : null}
               </div>
 
               {summary ? (
-                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-sm text-emerald-800 dark:border-emerald-900/40 dark:bg-emerald-900/20 dark:text-emerald-200">
+                <div className="mt-4 rounded-xl border border-white/30 bg-emerald-700/30 p-4 text-sm text-white">
                   {summary}
                 </div>
               ) : null}

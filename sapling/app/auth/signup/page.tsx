@@ -21,8 +21,8 @@ export default async function SignupPage({ searchParams }: PageProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2 text-center">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Join Sapling</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-300">
+        <h1 className="text-2xl font-semibold text-white">Join Sapling</h1>
+        <p className="text-sm text-white/90">
           Create an account to start journaling and nurture your 3D tree.
         </p>
       </div>

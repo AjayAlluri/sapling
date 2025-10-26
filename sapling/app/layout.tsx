@@ -39,7 +39,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-gradient-to-b from-zinc-50 via-white to-zinc-100 text-zinc-900 antialiased dark:from-zinc-950 dark:via-zinc-950 dark:to-black dark:text-zinc-100`}
+        className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-[#f6f1e4] text-white antialiased`}
       >
         <SupabaseProvider initialSession={session}>
           <div className="flex min-h-screen flex-col">
