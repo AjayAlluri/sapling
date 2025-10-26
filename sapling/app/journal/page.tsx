@@ -77,7 +77,7 @@ export default async function JournalPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-16 sm:px-6">
       <header className="flex flex-col gap-4">
         <span className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-500">
-          Phase 6 · Journal & Tree
+          Your daily reflection studio
         </span>
         <h1 className="text-3xl font-semibold text-zinc-900 dark:text-zinc-50">Daily reflections</h1>
         <p className="max-w-3xl text-sm text-zinc-600 dark:text-zinc-300">
