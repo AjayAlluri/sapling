@@ -38,7 +38,7 @@ export function TreeScene({ state }: Props) {
       <Canvas shadows camera={{ position: [4, 4, 6], fov: 45 }}>
         <Suspense fallback={null}>
           {/* Subtle fog for depth */}
-          <fog attach="fog" args={[ambientColor, 12, 26]} />
+          <fog attach="fog" args={[ambientColor, 12, 40]} />
           <ambientLight intensity={0.55} color={ambientColor} />
           <directionalLight
             position={[5, 10, 4]}
@@ -57,7 +57,7 @@ export function TreeScene({ state }: Props) {
           <OrbitControls
             enablePan={false}
             minDistance={4}
-            maxDistance={11}
+            maxDistance={24}
             maxPolarAngle={Math.PI / 2.25}
           />
           <Environment preset="sunset" />
