@@ -4,6 +4,20 @@
 
 Build an emotional journal app that visualizes emotions as a growing 3D tree using Claude AI for sentiment analysis. Implementation will proceed in phases with commits after each major feature completion. The project is intentionally local-first—no deployment targets or hosting steps are required, so every phase focuses on getting the app running smoothly on your machine.
 
+### Progress Snapshot
+
+- [x] **Phase 0** – Credentials gathered, `.env.local` ready
+- [x] **Phase 1** – Next.js scaffold, core dependencies, navigation shell
+- [x] **Phase 2** – Supabase auth (server/client helpers, routes, middleware)
+- [x] **Phase 3** – Database schema + RLS in SQL migrations; types synced
+- [x] **Phase 4** – Claude analysis helper, `/api/analyze-entry` endpoint
+- [x] **Phase 5** – Journal page with server actions, auto-analysis, history list
+- [ ] **Phase 6** – 3D tree visualization (in progress)
+- [ ] **Phase 7** – Emotion-driven tree mutations
+- [ ] **Phase 8** – Dashboard & analytics
+- [ ] **Phase 9** – AI Story + reflections
+- [ ] **Phase 10** – Polish & accessibility
+
 ## Phase Breakdown
 
 ### Phase 0: Prerequisites Setup ⚙️
