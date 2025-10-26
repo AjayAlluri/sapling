@@ -2,7 +2,7 @@
 
 ## Overview
 
-Build an emotional journal app that visualizes emotions as a growing 3D tree using Claude AI for sentiment analysis. Implementation will proceed in phases with commits after each major feature completion.
+Build an emotional journal app that visualizes emotions as a growing 3D tree using Claude AI for sentiment analysis. Implementation will proceed in phases with commits after each major feature completion. The project is intentionally local-first—no deployment targets or hosting steps are required, so every phase focuses on getting the app running smoothly on your machine.
 
 ## Phase Breakdown
 
@@ -358,10 +358,10 @@ Each journal entry permanently affects the tree:
 
 ## Which Phases to Implement?
 
-**Recommended MVP** (Phases 0-6): Core functionality with working tree visualization
+**Local MVP** (Phases 0-6): Core functionality with working tree visualization in dev
 
-**Full Featured** (Phases 0-9): Complete app with AI story feature
+**Extended Local Feature Set** (Phases 0-9): Complete app with AI story feature for personal use
 
-**Demo Ready** (Phases 0-10): Production-ready with polish
+**Experimental Extras** (Phases 0-10): Optional polish for local showcases and demos
 
-**Next Step:** Let me know which phases you'd like to implement, and I'll start with Phase 0 (prerequisites setup).
+**Next Step:** Continue tackling phases sequentially on your local environment—no deployment actions needed.
