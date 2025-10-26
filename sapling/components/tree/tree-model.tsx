@@ -57,22 +57,35 @@ function createSeededRandom(seed: number) {
 
 function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
   const rand = createSeededRandom(state.seed);
-  const trunkHeight = 2.2 + state.branchCount * 0.18 + state.overallHealth * 1.3;
-  const segmentCount = 6;
+  const trunkHeight = 2.35 + state.branchCount * 0.2 + state.overallHealth * 1.35;
+  const segmentCount = 8;
   const points: Vector3[] = [new Vector3(0, 0, 0)];
 
   let current = new Vector3(0, 0, 0);
+  // Spiral parameters for a subtle helical trunk path
+  const spiralTurns = 1.1 + Math.abs(state.palette.branchTwist) * 1.1;
+  const spiralRadiusBase = 0.16 + state.overallHealth * 0.08;
+
   for (let i = 1; i <= segmentCount; i++) {
     const progress = i / segmentCount;
     const step = trunkHeight / segmentCount;
-    const leanX = state.palette.branchLean * progress * 1.3 + (rand() - 0.5) * 0.3;
-    const leanZ = (rand() - 0.5) * 0.35;
-    current = current.clone().add(new Vector3(leanX, step, leanZ));
+    const leanX = state.palette.branchLean * progress * 1.2 + (rand() - 0.5) * 0.22;
+    const leanZ = (rand() - 0.5) * 0.28;
+
+    // Compute spiral offset that gently decays toward the top
+    const theta = progress * Math.PI * 2 * spiralTurns;
+    const attenuation = 1 - progress * 0.55;
+    const spiralX = Math.cos(theta) * spiralRadiusBase * attenuation;
+    const spiralZ = Math.sin(theta) * spiralRadiusBase * attenuation;
+
+    current = current
+      .clone()
+      .add(new Vector3(leanX + spiralX, step, leanZ + spiralZ));
     points.push(current.clone());
   }
 
   const trunkCurve = new CatmullRomCurve3(points, false, "catmullrom", 0.5);
-  const trunkGeometry = new TubeGeometry(trunkCurve, 160, 0.46, 16, false);
+  const trunkGeometry = new TubeGeometry(trunkCurve, 160, 0.5, 16, false);
 
   const tmpVec = new Vector3();
   const center = new Vector3();
@@ -84,7 +97,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
     trunkCurve.getPointAt(t, center);
     tmpVec.fromBufferAttribute(positions, i);
     tmpVec.sub(center);
-    const radius = 0.56 - t * 0.36 + state.overallHealth * 0.09; // slightly fuller base taper
+    const radius = 0.62 - t * 0.38 + state.overallHealth * 0.1; // more prominent base, natural taper
     tmpVec.setLength(Math.max(0.12, radius));
     tmpVec.add(center);
     positions.setXYZ(i, tmpVec.x, tmpVec.y, tmpVec.z);
@@ -108,24 +121,30 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
       normal.normalize();
     }
     normal.applyAxisAngle(tangent, state.palette.branchTwist + rand() * Math.PI * 2);
+    const binormal = new Vector3().crossVectors(tangent, normal).normalize();
 
     const length =
-      1.1 + sentimentFactor * 0.9 + (1 - baseT) * 0.5 + (rand() - 0.5) * 0.4;
-    const control = start
+      1.2 + sentimentFactor * 0.95 + (1 - baseT) * 0.6 + (rand() - 0.5) * 0.4;
+    const control1 = start
       .clone()
       .add(tangent.clone().multiplyScalar(length * 0.35))
-      .add(normal.clone().multiplyScalar(length * 0.55));
+      .add(normal.clone().multiplyScalar(length * 0.55))
+      .add(new Vector3(0, length * 0.06, 0));
+    const normal2 = normal.clone().applyAxisAngle(tangent, Math.PI / 3 + rand() * Math.PI * 0.5);
+    const control2 = start
+      .clone()
+      .add(tangent.clone().multiplyScalar(length * 0.7))
+      .add(normal2.clone().multiplyScalar(length * 0.35))
+      .add(binormal.clone().multiplyScalar((rand() - 0.5) * 0.3))
+      .add(new Vector3(0, length * 0.1, 0));
     const end = start
       .clone()
-      .add(
-        normal
-          .clone()
-          .multiplyScalar(length)
-          .add(new Vector3((rand() - 0.5) * 0.4, (rand() - 0.5) * 0.3, (rand() - 0.5) * 0.4))
-      );
+      .add(tangent.clone().multiplyScalar(length * 0.95))
+      .add(normal2.clone().multiplyScalar(length * 0.55))
+      .add(new Vector3((rand() - 0.5) * 0.3, rand() * 0.35, (rand() - 0.5) * 0.3));
 
-    const branchCurve = new CatmullRomCurve3([start, control, end], false, "catmullrom", 0.5);
-    const branchGeometry = new TubeGeometry(branchCurve, 60, 0.16, 12, false);
+    const branchCurve = new CatmullRomCurve3([start, control1, control2, end], false, "catmullrom", 0.5);
+    const branchGeometry = new TubeGeometry(branchCurve, 80, 0.2, 14, false);
 
     const branchPositions = branchGeometry.attributes.position;
     const branchUV = branchGeometry.attributes.uv;
@@ -134,7 +153,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
       branchCurve.getPointAt(t, center);
       tmpVec.fromBufferAttribute(branchPositions, idx);
       tmpVec.sub(center);
-      const radius = 0.16 - t * 0.12;
+      const radius = 0.24 - t * 0.17; // thicker base with stronger taper
       tmpVec.setLength(Math.max(0.04, radius));
       tmpVec.add(center);
       branchPositions.setXYZ(idx, tmpVec.x, tmpVec.y, tmpVec.z);
@@ -171,8 +190,8 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
         .add(twigSide.clone().multiplyScalar(twigLen))
         .add(new Vector3((rand() - 0.5) * 0.18, (rand() - 0.3) * 0.12, (rand() - 0.5) * 0.18));
 
-      const twigCurve = new CatmullRomCurve3([twigStart, twigControl, twigEnd], false, "catmullrom", 0.5);
-      const twigGeometry = new TubeGeometry(twigCurve, 24, 0.075, 10, false);
+    const twigCurve = new CatmullRomCurve3([twigStart, twigControl, twigEnd], false, "catmullrom", 0.5);
+    const twigGeometry = new TubeGeometry(twigCurve, 32, 0.09, 12, false);
 
       // Gentle taper on twig geometry
       const twigPos = twigGeometry.attributes.position;
@@ -182,7 +201,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
         twigCurve.getPointAt(t, center);
         tmpVec.fromBufferAttribute(twigPos, idx);
         tmpVec.sub(center);
-        const radius = 0.09 - t * 0.075;
+        const radius = 0.12 - t * 0.09;
         tmpVec.setLength(Math.max(0.015, radius));
         tmpVec.add(center);
         twigPos.setXYZ(idx, tmpVec.x, tmpVec.y, tmpVec.z);
