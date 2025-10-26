@@ -83,6 +83,7 @@ export default async function JournalPage() {
       : [];
 
   const treeState = mapRowToVisualState(treeStateRow);
+  const adjustedTreeState = { ...treeState, branchCount: Math.max(entries.length, 1) };
   const latestSummary = entries[0]?.analysis?.tone_summary ?? null;
 
   return (
@@ -100,7 +101,7 @@ export default async function JournalPage() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1.1fr),minmax(0,1.1fr)]">
         <div className="flex flex-col gap-8">
           <EntryForm />
-          <TreePanel state={treeState} lastAnalysisSummary={latestSummary} />
+          <TreePanel state={adjustedTreeState} lastAnalysisSummary={latestSummary} />
           {treeLoadMessage ? (
             <ErrorNotice message={treeLoadMessage} hint="Check supabase/migrations/0001_core_schema.sql and docs/tree.md for setup steps." />
           ) : null}
