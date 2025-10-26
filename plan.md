@@ -12,7 +12,7 @@ Build an emotional journal app that visualizes emotions as a growing 3D tree usi
 - [x] **Phase 3** – Database schema + RLS in SQL migrations; types synced
 - [x] **Phase 4** – Claude analysis helper, `/api/analyze-entry` endpoint
 - [x] **Phase 5** – Journal page with server actions, auto-analysis, history list
-- [ ] **Phase 6** – 3D tree visualization (in progress)
+- [x] **Phase 6** – 3D tree visualization
 - [ ] **Phase 7** – Emotion-driven tree mutations
 - [ ] **Phase 8** – Dashboard & analytics
 - [ ] **Phase 9** – AI Story + reflections

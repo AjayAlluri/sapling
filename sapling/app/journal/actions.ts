@@ -7,8 +7,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { analyzeJournalEntry, type AnalysisResult } from "@/lib/claude/analyze-entry";
 import { upsertSentimentAnalysis } from "@/lib/sentiment/upsert-analysis";
 import { clamp } from "@/lib/utils/math";
-import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
+import { describePostgrestError } from "@/lib/supabase/errors";
 
 const EntrySchema = z.object({
   title: z
@@ -98,7 +99,7 @@ export async function createJournalEntry(
 
     if (insertError || !entry) {
       console.error("Failed to insert journal entry", insertError);
-      const friendly = mapDatabaseError(insertError);
+      const friendly = describePostgrestError(insertError);
       return {
         status: "error",
         message: friendly ?? "Could not save your entry. Please try again.",
@@ -187,7 +188,7 @@ async function updateTreeState({
 
   if (stateError) {
     console.error("Failed to load tree state", stateError);
-    const friendly = mapDatabaseError(stateError) ?? "Sapling couldn't read your tree data.";
+    const friendly = describePostgrestError(stateError) ?? "Sapling couldn't read your tree data.";
     return friendly;
   }
 
@@ -231,21 +232,10 @@ async function updateTreeState({
 
   if (upsertTreeError) {
     console.error("Failed to update tree state", upsertTreeError);
-    return mapDatabaseError(upsertTreeError) ?? "Sapling couldn't refresh the tree just yet.";
+    return (
+      describePostgrestError(upsertTreeError) ?? "Sapling couldn't refresh the tree just yet."
+    );
   }
 
   return null;
-}
-
-function mapDatabaseError(error?: PostgrestError | null): string | null {
-  if (!error) return null;
-  switch (error.code) {
-    case "42P01":
-      return "Sapling couldn't find the required tables. Make sure you've run the SQL in supabase/migrations/0001_core_schema.sql.";
-    case "42501":
-    case "P0001":
-      return "Supabase rejected the request due to row-level security. Double-check your policies and credentials.";
-    default:
-      return null;
-  }
 }

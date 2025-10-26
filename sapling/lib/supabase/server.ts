@@ -25,10 +25,26 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient<Datab
           sameSite?: true | false | "lax" | "strict" | "none";
         } = {}
       ) {
-        cookieStore.set({ name, value, ...options });
+        try {
+          cookieStore.set({ name, value, ...options });
+        } catch {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              "[Supabase] Unable to set cookies in this context (expected for server components)."
+            );
+          }
+        }
       },
       remove(name: string, options: { domain?: string; path?: string } = {}) {
-        cookieStore.delete({ name, ...options });
+        try {
+          cookieStore.delete({ name, ...options });
+        } catch {
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(
+              "[Supabase] Unable to remove cookies in this context (expected for server components)."
+            );
+          }
+        }
       },
     },
   });

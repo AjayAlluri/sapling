@@ -4,10 +4,11 @@
 begin;
 
 create extension if not exists "uuid-ossp";
+create extension if not exists "pgcrypto";
 
 -- Journal entries authored by users.
 create table if not exists public.journal_entries (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   title text,
   content text not null,
@@ -25,7 +26,7 @@ create index if not exists journal_entries_entry_date_idx
   on public.journal_entries (user_id, entry_date);
 
 create table if not exists public.sentiment_analysis (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   entry_id uuid not null references public.journal_entries (id) on delete cascade,
   model text not null,
   overall_sentiment text,

@@ -5,6 +5,7 @@ import { TreePanel } from "@/components/tree/tree-panel";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { mapRowToVisualState } from "@/lib/tree/state";
 import type { Database } from "@/types/database";
+import { describePostgrestError } from "@/lib/supabase/errors";
 
 type SentimentRow = Database["public"]["Tables"]["sentiment_analysis"]["Row"];
 type JournalEntryRow = Database["public"]["Tables"]["journal_entries"]["Row"];
@@ -51,24 +52,35 @@ export default async function JournalPage() {
       .maybeSingle(),
   ]);
 
+  let entryLoadMessage: string | null = null;
   if (error) {
     console.error("Failed to load journal entries", error);
+    entryLoadMessage =
+      describePostgrestError(error) ??
+      "Sapling couldn't read your journal entries. Confirm the Supabase migrations ran (see docs/database.md) and try again.";
   }
+
+  let treeLoadMessage: string | null = null;
   if (treeError) {
     console.error("Failed to load tree state", treeError);
+    treeLoadMessage =
+      describePostgrestError(treeError) ??
+      "Sapling couldn't read the tree state yet. Make sure the tree_state table exists and policies allow access.";
   }
 
   const entries: JournalEntryItem[] =
-    (data as JournalQueryResult[] | null)?.map((entry) => ({
-      id: entry.id,
-      title: entry.title,
-      content: entry.content,
-      entryDate: entry.entry_date,
-      createdAt: entry.created_at,
-      moodTag: entry.mood_tag,
-      wordCount: entry.word_count,
-      analysis: normalizeAnalysis(entry.sentiment_analysis),
-    })) ?? [];
+    !error && (data as JournalQueryResult[] | null)
+      ? (data as JournalQueryResult[]).map((entry) => ({
+          id: entry.id,
+          title: entry.title,
+          content: entry.content,
+          entryDate: entry.entry_date,
+          createdAt: entry.created_at,
+          moodTag: entry.mood_tag,
+          wordCount: entry.word_count,
+          analysis: normalizeAnalysis(entry.sentiment_analysis),
+        }))
+      : [];
 
   const treeState = mapRowToVisualState(treeStateRow);
   const latestSummary = entries[0]?.analysis?.tone_summary ?? null;
@@ -90,8 +102,19 @@ export default async function JournalPage() {
         <div className="flex flex-col gap-8">
           <EntryForm />
           <TreePanel state={treeState} lastAnalysisSummary={latestSummary} />
+          {treeLoadMessage ? (
+            <ErrorNotice message={treeLoadMessage} hint="Check supabase/migrations/0001_core_schema.sql and docs/tree.md for setup steps." />
+          ) : null}
         </div>
-        <EntryList entries={entries} />
+        <div className="flex flex-col gap-4">
+          {entryLoadMessage ? (
+            <ErrorNotice
+              message={entryLoadMessage}
+              hint="Review docs/database.md for migration instructions and confirm your Supabase credentials."
+            />
+          ) : null}
+          <EntryList entries={entries} />
+        </div>
       </div>
     </div>
   );
@@ -109,4 +132,14 @@ function normalizeAnalysis(
   }
 
   return relation;
+}
+
+function ErrorNotice({ message, hint }: { message: string; hint?: string }) {
+  return (
+    <div className="rounded-2xl border border-red-200 bg-red-50/80 p-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-200">
+      <p className="font-semibold">Heads up</p>
+      <p className="mt-1">{message}</p>
+      {hint ? <p className="mt-2 text-xs text-red-600/80 dark:text-red-200/80">{hint}</p> : null}
+    </div>
+  );
 }
