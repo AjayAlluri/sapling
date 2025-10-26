@@ -5,10 +5,11 @@ import {
   CatmullRomCurve3,
   Color,
   DoubleSide,
+  BufferGeometry,
+  Float32BufferAttribute,
   InstancedMesh,
   MeshStandardMaterial,
   Object3D,
-  PlaneGeometry,
   TubeGeometry,
   Vector3,
 } from "three";
@@ -18,6 +19,11 @@ import type { TreeVisualState } from "@/lib/tree/state";
 import { clamp } from "@/lib/utils/math";
 
 type BranchData = {
+  geometry: TubeGeometry;
+  color: string;
+};
+
+type TwigData = {
   geometry: TubeGeometry;
   color: string;
 };
@@ -36,6 +42,7 @@ type TreeGeometry = {
   trunkGeometry: TubeGeometry;
   trunkColor: string;
   branches: BranchData[];
+  twigs: TwigData[];
   leaves: LeafInstance[];
 };
 
@@ -65,7 +72,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
   }
 
   const trunkCurve = new CatmullRomCurve3(points, false, "catmullrom", 0.5);
-  const trunkGeometry = new TubeGeometry(trunkCurve, 140, 0.4, 16, false);
+  const trunkGeometry = new TubeGeometry(trunkCurve, 160, 0.46, 16, false);
 
   const tmpVec = new Vector3();
   const center = new Vector3();
@@ -77,7 +84,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
     trunkCurve.getPointAt(t, center);
     tmpVec.fromBufferAttribute(positions, i);
     tmpVec.sub(center);
-    const radius = 0.5 - t * 0.32 + state.overallHealth * 0.08;
+    const radius = 0.56 - t * 0.36 + state.overallHealth * 0.09; // slightly fuller base taper
     tmpVec.setLength(Math.max(0.12, radius));
     tmpVec.add(center);
     positions.setXYZ(i, tmpVec.x, tmpVec.y, tmpVec.z);
@@ -88,6 +95,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
   const sentimentFactor = clamp((state.sentimentScore + 1) / 2, 0, 1);
   const branchCount = Math.max(4, Math.min(10, state.branchCount + 2));
   const branches: BranchData[] = [];
+  const twigs: TwigData[] = [];
 
   for (let i = 0; i < branchCount; i++) {
     const baseT = 0.2 + (i / branchCount) * 0.6;
@@ -117,7 +125,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
       );
 
     const branchCurve = new CatmullRomCurve3([start, control, end], false, "catmullrom", 0.5);
-    const branchGeometry = new TubeGeometry(branchCurve, 50, 0.14, 12, false);
+    const branchGeometry = new TubeGeometry(branchCurve, 60, 0.16, 12, false);
 
     const branchPositions = branchGeometry.attributes.position;
     const branchUV = branchGeometry.attributes.uv;
@@ -141,23 +149,78 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
       geometry: branchGeometry,
       color: `#${branchColor}`,
     });
+
+    // Spawn 1-3 twigs towards the outer half of the branch for a fuller canopy
+    const twigCount = 1 + Math.floor(rand() * 3);
+    for (let tIndex = 0; tIndex < twigCount; tIndex++) {
+      const twigBaseT = clamp(0.55 + rand() * 0.4, 0.55, 0.95);
+      const twigStart = branchCurve.getPointAt(twigBaseT);
+      const twigTangent = branchCurve.getTangentAt(twigBaseT).normalize();
+      // Create a perpendicular direction with slight upward bias
+      const twigNormalSeed = new Vector3(rand() - 0.5, Math.abs(rand()), rand() - 0.5).normalize();
+      const twigNormal = new Vector3().crossVectors(twigTangent, twigNormalSeed).normalize();
+      const twigSide = twigNormal.applyAxisAngle(twigTangent, rand() * Math.PI * 2);
+
+      const twigLen = 0.45 + sentimentFactor * 0.35 + (1 - twigBaseT) * 0.25 + (rand() - 0.5) * 0.15;
+      const twigControl = twigStart
+        .clone()
+        .add(twigTangent.clone().multiplyScalar(twigLen * 0.2))
+        .add(twigSide.clone().multiplyScalar(twigLen * 0.6));
+      const twigEnd = twigStart
+        .clone()
+        .add(twigSide.clone().multiplyScalar(twigLen))
+        .add(new Vector3((rand() - 0.5) * 0.18, (rand() - 0.3) * 0.12, (rand() - 0.5) * 0.18));
+
+      const twigCurve = new CatmullRomCurve3([twigStart, twigControl, twigEnd], false, "catmullrom", 0.5);
+      const twigGeometry = new TubeGeometry(twigCurve, 24, 0.075, 10, false);
+
+      // Gentle taper on twig geometry
+      const twigPos = twigGeometry.attributes.position;
+      const twigUV = twigGeometry.attributes.uv;
+      for (let idx = 0; idx < twigPos.count; idx++) {
+        const t = twigUV.getY(idx);
+        twigCurve.getPointAt(t, center);
+        tmpVec.fromBufferAttribute(twigPos, idx);
+        tmpVec.sub(center);
+        const radius = 0.09 - t * 0.075;
+        tmpVec.setLength(Math.max(0.015, radius));
+        tmpVec.add(center);
+        twigPos.setXYZ(idx, tmpVec.x, tmpVec.y, tmpVec.z);
+      }
+      twigPos.needsUpdate = true;
+      twigGeometry.computeVertexNormals();
+
+      const twigColor = new Color(`#${branchColor}`).lerp(new Color(state.palette.barkHighlight), 0.35).getHexString();
+      twigs.push({ geometry: twigGeometry, color: `#${twigColor}` });
+    }
   }
 
   const dominantColors = state.dominantEmotions
     .filter((emotion) => typeof emotion.colorHex === "string")
     .map((emotion) => new Color(emotion.colorHex as string));
 
-  const leafCount = Math.min(220, Math.max(90, Math.round(state.leafCount * 1.6)));
+  const leafCount = Math.min(260, Math.max(120, Math.round(state.leafCount * 1.8)));
   const leafPrimary = new Color(state.palette.leafPrimary);
   const leafSecondary = new Color(state.palette.leafSecondary);
   const accentColor = new Color(state.palette.accentColor);
 
   const leaves: LeafInstance[] = [];
-  for (let i = 0; i < leafCount; i++) {
-    const branch = branches[Math.floor(rand() * branches.length)];
-    const t = clamp(Math.pow(rand(), 0.7), 0.05, 0.98);
+  // Precompute a few cluster centers (either on twigs or branches)
+  const clusters = Array.from({ length: Math.max(4, Math.floor(leafCount / 40)) }).map(() => {
+    const useTwig = twigs.length > 0 && rand() < 0.6;
+    const source = useTwig
+      ? (twigs[Math.floor(rand() * twigs.length)].geometry.parameters.path as CatmullRomCurve3)
+      : (branches[Math.floor(rand() * branches.length)].geometry.parameters.path as CatmullRomCurve3);
+    const tCenter = useTwig ? clamp(0.7 + rand() * 0.28, 0.7, 0.98) : clamp(0.45 + rand() * 0.45, 0.45, 0.95);
+    return { source, tCenter };
+  });
 
-    const curve = branch.geometry.parameters.path as CatmullRomCurve3;
+  for (let i = 0; i < leafCount; i++) {
+    // Pick a cluster center and sample around it
+    const cluster = clusters[Math.floor(rand() * clusters.length)];
+    const t = clamp(cluster.tCenter + (rand() - 0.5) * 0.18, 0.05, 0.98);
+
+    const curve = cluster.source;
     const point = curve.getPointAt(t);
     const tangent = curve.getTangentAt(t).normalize();
 
@@ -172,8 +235,8 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
       .add(normal.multiplyScalar(radialOffset))
       .add(lateralOffset);
 
-    const scale = 0.35 + rand() * 0.55 + sentimentFactor * 0.2;
-    const swayAmplitude = 0.08 + rand() * 0.12 + state.palette.windStrength * 0.04;
+    const scale = 0.32 + rand() * 0.6 + sentimentFactor * 0.22;
+    const swayAmplitude = 0.06 + rand() * 0.12 + state.palette.windStrength * 0.05;
     const swaySpeed = 0.6 + rand() * 0.7 + state.palette.windStrength * 0.9;
     const swayOffset = rand() * Math.PI * 2;
 
@@ -202,6 +265,7 @@ function buildTreeGeometry(state: TreeVisualState): TreeGeometry {
     trunkGeometry,
     trunkColor: state.palette.barkColor,
     branches,
+    twigs,
     leaves,
   };
 }
@@ -213,6 +277,7 @@ const TreeModelComponent = ({ state }: { state: TreeVisualState }) => {
     return () => {
       treeGeometry.trunkGeometry.dispose();
       treeGeometry.branches.forEach((branch) => branch.geometry.dispose());
+      treeGeometry.twigs.forEach((twig) => twig.geometry.dispose());
     };
   }, [treeGeometry]);
 
@@ -221,6 +286,7 @@ const TreeModelComponent = ({ state }: { state: TreeVisualState }) => {
       <Ground color={state.palette.barkHighlight} />
       <Trunk geometry={treeGeometry.trunkGeometry} color={treeGeometry.trunkColor} />
       <Branches branches={treeGeometry.branches} />
+      <Twigs twigs={treeGeometry.twigs} />
       <Leaves leaves={treeGeometry.leaves} />
       <EmotionParticles palette={state.palette} />
     </group>
@@ -253,6 +319,18 @@ const Branches = memo(function Branches({ branches }: { branches: BranchData[] }
   );
 });
 
+const Twigs = memo(function Twigs({ twigs }: { twigs: TwigData[] }) {
+  return (
+    <group>
+      {twigs.map((twig, index) => (
+        <mesh key={index} geometry={twig.geometry} castShadow>
+          <meshStandardMaterial color={twig.color} roughness={0.7} metalness={0.08} />
+        </mesh>
+      ))}
+    </group>
+  );
+});
+
 const Leaves = memo(function Leaves({
   leaves,
 }: {
@@ -274,15 +352,15 @@ const Leaves = memo(function Leaves({
     [leaves]
   );
 
-  const geometry = useMemo(() => new PlaneGeometry(0.4, 0.9, 1, 1), []);
+  const geometry = useMemo(() => createLeafGeometry(), []);
   const material = useMemo(() => {
     const mat = new MeshStandardMaterial({
       color: "#ffffff",
       side: DoubleSide,
-      roughness: 0.5,
-      metalness: 0.08,
+      roughness: 0.65,
+      metalness: 0.06,
       transparent: true,
-      opacity: 0.92,
+      opacity: 0.95,
       vertexColors: true,
     });
     return mat;
@@ -377,3 +455,50 @@ const Ground = memo(function Ground({ color }: { color: string }) {
 });
 
 export const TreeModel = memo(TreeModelComponent);
+
+// Builds a reusable curved leaf geometry (teardrop silhouette with subtle camber)
+function createLeafGeometry(): BufferGeometry {
+  const length = 0.9; // along +Y
+  const maxHalfWidth = 0.22; // across X
+  const segmentsL = 14; // lengthwise segments
+  const segmentsW = 8; // widthwise segments (each side)
+
+  const positions: number[] = [];
+  const uvs: number[] = [];
+  const indices: number[] = [];
+
+  for (let i = 0; i <= segmentsL; i++) {
+    const u = i / segmentsL; // 0..1 from stem to tip
+    // width profile: teardrop-like, fuller near 0.35, narrowing to tip
+    const profile = Math.sin(Math.PI * Math.min(u * 0.95 + 0.05, 1)) ** 0.8 * (1 - u * 0.06);
+    const halfWidth = maxHalfWidth * profile;
+    for (let j = 0; j <= segmentsW; j++) {
+      const v = (j / segmentsW) * 2 - 1; // -1..1 across
+      const x = halfWidth * v;
+      const y = u * length;
+      // subtle camber (curve) along Z; stronger near center, smaller at tip/stem
+      const camber = (1 - Math.abs(v)) * 0.08 * Math.sin(Math.PI * u) * 0.7;
+      const z = camber;
+      positions.push(x, y, z);
+      uvs.push((v + 1) / 2, u);
+    }
+  }
+
+  const row = segmentsW + 1;
+  for (let i = 0; i < segmentsL; i++) {
+    for (let j = 0; j < segmentsW; j++) {
+      const a = i * row + j;
+      const b = a + row;
+      const c = b + 1;
+      const d = a + 1;
+      indices.push(a, b, d, b, c, d);
+    }
+  }
+
+  const geometry = new BufferGeometry();
+  geometry.setAttribute("position", new Float32BufferAttribute(positions, 3));
+  geometry.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+  geometry.setIndex(indices);
+  geometry.computeVertexNormals();
+  return geometry;
+}
